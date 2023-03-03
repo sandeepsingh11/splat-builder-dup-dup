@@ -51,13 +51,13 @@
                         <label for="remember">Remember me</label>
                     </div>
 
-                    <div>
+                    <!-- <div>
                         <a 
                             href="/forgot-password" 
                             class="cursor:pointer text-indigo-800 hover:text-indigo-600 hover:underline transition-colors"
                         >Forgot password?
                         </a>
-                    </div>
+                    </div> -->
                 </div>
             </div>
 
