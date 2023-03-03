@@ -15,6 +15,7 @@ export const load: LayoutServerLoad = async ({ locals }) => {
         {name: 'Dashboard', url: '/dashboard'},
         {name: 'Gears', url: '/gears'},
         {name: 'Gearsets', url: '/gearsets'},
+        {name: 'Logout', url: '/logout'},
     ];
     
     return { 

@@ -50,3 +50,7 @@ export function getSession(sid: string) {
         return undefined;
     }
 }
+
+export function deleteSession(sid: string) {
+    sessionObj.delete(sid);
+}

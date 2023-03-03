@@ -8,10 +8,6 @@
   function toggleDropdown() {
     showDropdown = !showDropdown;
   }
-
-  function logout() {
-
-  }
 </script>
 
 <nav class="relative bg-primary-500 text-white flex justify-between">
@@ -68,16 +64,12 @@
               <a 
                 href="{ route.url }"
                 class="block p-3 hover:bg-primary-600 focus:hover:bg-primary-600 transition-colors py-2 px-4 rounded-t-md"
+                data-sveltekit-preload-data="off"
+                data-sveltekit-reload
               >
                 { route.name }
               </a>
             {/each}
-            <button 
-              class="block p-3 hover:bg-primary-600 focus:hover:bg-primary-600 transition-colors py-2 px-4 rounded-t-md w-full text-left"
-              on:click={logout}
-            >
-              Logout
-            </button>
           </ul>
         {/if}
       </div>
