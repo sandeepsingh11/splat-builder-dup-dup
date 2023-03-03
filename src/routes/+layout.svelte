@@ -63,7 +63,7 @@
             {#each data.dropdownRoutes as route}
               <a 
                 href="{ route.url }"
-                class="block p-3 hover:bg-primary-600 focus:hover:bg-primary-600 transition-colors py-2 px-4 rounded-t-md"
+                class="block p-3 hover:bg-primary-600 focus:hover:bg-primary-600 transition-colors py-2 px-4 rounded-t-md rounded-b-md"
                 data-sveltekit-preload-data="off"
                 data-sveltekit-reload
               >
