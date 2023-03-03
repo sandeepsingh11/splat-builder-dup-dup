@@ -1,28 +1,17 @@
-import { error, fail, redirect } from '@sveltejs/kit'
+import { fail, redirect } from '@sveltejs/kit'
 import type { Action, Actions, PageServerLoad } from "./$types"
 import { PUBLIC_API_URL } from "$env/static/public";
-import { goto } from '$app/navigation';
 
 
-export const load: PageServerLoad = async ({cookies}) => {
-  const token = cookies.get('sb_token');
-  console.log('load --> ' + token);
-
-  return {
-    token
-  }
+export const load: PageServerLoad = async () => {
 }
 
-const register: Action = async ({ request, cookies }) => {
+const register: Action = async ({ request }) => {
   const formData = await request.formData();
   const username = formData.get('username');
   const email = formData.get('email');
   const password = formData.get('password');
   const passwordConf = formData.get('password_confirmation');
-  const formToken = formData.get('_token');
-  
-  const token = cookies.get('sb_token');
-  console.log('action --> ' + formToken +  ' - ' + token);
 
   if (
     !username ||
@@ -54,7 +43,7 @@ const register: Action = async ({ request, cookies }) => {
     console.log(output);
   }
   else {
-    throw error(res.status, res.statusText);
+    throw fail(res.status, { error: true });
   }
 
   

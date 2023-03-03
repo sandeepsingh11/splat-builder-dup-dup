@@ -1,8 +1,7 @@
 <script lang="ts">
-    import type { ActionData, PageData } from './$types'
+    import type { ActionData } from './$types'
 
-    export let form: ActionData
-    export let data: PageData;
+    export let form: ActionData;
 </script>
 
 
@@ -13,11 +12,8 @@
         </div>
 
         <form action="?/register" method="POST">
-            <input type="hidden" name="_token" value="{data.token}" required>
-    
-            <!-- <div class="text-red-500 mt-2 text-sm font-bold text-center">{{ error }}</div> -->
-            {#if form?.user}
-                <p class="error">Username is taken.</p>
+            {#if form?.error}
+                <div class="text-red-500 mt-2 text-sm font-bold text-center">Something went wrong. Please try again</div>
             {/if}
 
             <div class="mb-5">
