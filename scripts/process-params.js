@@ -218,8 +218,8 @@ function parseGears() {
     }
   });
 
-  writeFile(gearOutputPath, infoHml);
-  writeFile(gearVersionOutputPath, infoHml);
+  writeFile(gearOutputPath, gears);
+  writeFile(gearVersionOutputPath, gears);
 }
 
 function parseTranslations() {
