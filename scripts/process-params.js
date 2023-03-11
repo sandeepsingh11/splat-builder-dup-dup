@@ -1,5 +1,5 @@
 // https://downgit.github.io/#/home to download param files at https://github.com/Leanny/leanny.github.io/tree/master/splat3/data/parameter/210/weapon
-import { existsSync, mkdirSync, readFileSync, unlinkSync, writeFileSync } from 'fs';
+import { existsSync, mkdirSync, readFileSync, readdirSync, unlinkSync, writeFileSync } from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -59,6 +59,15 @@ function main() {
   parseInfoAndHml();
   parseGears();
   parseTranslations();
+  
+  // remove imported webp images
+  // const files = readdirSync(`${__dirname}/../static/gears/`);
+  // files.forEach(file => {
+  //   if (file.includes('webp')) {
+  //     unlinkSync(`${__dirname}/../static/gears/${file}`);
+  //     console.log(`unlinked ${__dirname}/../static/gears/${file}\n`);
+  //   }
+  // });
 }
 
 function parseWSS() {
@@ -196,7 +205,7 @@ function parseGears() {
   const gearTypes = ['Head', 'Clothes', 'Shoes'];
 
   gearTypes.forEach(gearType => {
-    gears[gearType] = {};
+    gears[gearType] = [];
   
     try {
       let gearTypeData = readFileSync(`${gearsPath}/GearInfo${gearType}.json`);
@@ -209,8 +218,9 @@ function parseGears() {
         gearTypeObj['Rarity'] = gear['Rarity'];
         gearTypeObj['Season'] = gear['Season'];
         gearTypeObj['Skill'] = gear['Skill'];
+        gearTypeObj['Id'] = gear['__RowId'];
     
-        gears[gearType][gear['__RowId']] = gearTypeObj;
+        gears[gearType].push(gearTypeObj);
       });
     }
     catch (error) {
@@ -231,18 +241,53 @@ function parseTranslations() {
       let langData = readFileSync(`${transDir}/${lang}.json`);
       langData = JSON.parse(langData.toString());
       
+      const sectionsToTranslate = [
+        'CommonMsg/Gear/GearBrandName',
+        'CommonMsg/Gear/GearName_Head',
+        'CommonMsg/Gear/GearName_Clothes',
+        'CommonMsg/Gear/GearName_Shoes',
+        'CommonMsg/Gear/GearPowerExp',
+        'CommonMsg/Gear/GearPowerName',
+        'CommonMsg/Weapon/WeaponName_Main',
+        'CommonMsg/Weapon/WeaponName_Special',
+        'CommonMsg/Weapon/WeaponName_Sub',
+        'CommonMsg/Weapon/WeaponParamName',
+        'CommonMsg/Weapon/WeaponTypeName'
+      ];
+      const sectionLabels = [
+        'GearBrandName',
+        'GearName_Head',
+        'GearName_Clothes',
+        'GearName_Shoes',
+        'GearPowerExp',
+        'GearPowerName',
+        'WeaponName_Main',
+        'WeaponName_Special',
+        'WeaponName_Sub',
+        'WeaponParamName',
+        'WeaponTypeName'
+      ];
       let transObj = {};
-      transObj['GearBrandName'] = langData['CommonMsg/Gear/GearBrandName'];
-      transObj['GearName_Head'] = langData['CommonMsg/Gear/GearName_Head'];
-      transObj['GearName_Clothes'] = langData['CommonMsg/Gear/GearName_Clothes'];
-      transObj['GearName_Shoes'] = langData['CommonMsg/Gear/GearName_Shoes'];
-      transObj['GearPowerExp'] = langData['CommonMsg/Gear/GearPowerExp'];
-      transObj['GearPowerName'] = langData['CommonMsg/Gear/GearPowerName'];
-      transObj['WeaponName_Main'] = langData['CommonMsg/Weapon/WeaponName_Main'];
-      transObj['WeaponName_Special'] = langData['CommonMsg/Weapon/WeaponName_Special'];
-      transObj['WeaponName_Sub'] = langData['CommonMsg/Weapon/WeaponName_Sub'];
-      transObj['WeaponParamName'] = langData['CommonMsg/Weapon/WeaponParamName'];
-      transObj['WeaponTypeName'] = langData['CommonMsg/Weapon/WeaponTypeName'];
+
+      // transform each section obj into an obj of objs
+      sectionsToTranslate.forEach((section, i) => {
+        const sectionKeys = Object.keys(langData[section]);
+        const sectionValues = Object.values(langData[section]);
+        let sectionArr = {};
+
+        sectionKeys.forEach((key, i) => {
+          if (section.includes('GearName')) {
+            // attach prefix for gear translations
+            const prefix = (section.includes('Head')) ? 'Hed_' : (section.includes('Clothes')) ? 'Clt_' : 'Shs_';
+            sectionArr[prefix + key] = sectionValues[i];
+          }
+          else {
+            sectionArr[key] = sectionValues[i];
+          }
+        });
+
+        transObj[sectionLabels[i]] = sectionArr;
+      });
   
       translations[lang] = transObj;
     }
