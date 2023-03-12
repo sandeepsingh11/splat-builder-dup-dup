@@ -5,6 +5,8 @@ import SearchSelect from "$lib/comp/SearchSelect.svelte";
 export let data: PageServerData;
 export let selectedGearId: string = 'Hed_ACC003';
 export let selectedGearName: string = 'Tentaclinger Earring';
+export let selectedWeaponId: string = 'Blaster_LightLong_00';
+export let selectedWeaponName: string = 'Rapid Blaster Pro';
 
 </script>
 
@@ -68,7 +70,25 @@ export let selectedGearName: string = 'Tentaclinger Earring';
 
         <!-- weapon selection and stats -->
         <div>
-            
+            <!-- weapon selection -->
+            <div>
+                <!-- search / select -->
+                <SearchSelect 
+                    itemList={data.weaponList}
+                    itemType="weapon"
+                    bind:selectedItemId={selectedWeaponId}
+                    bind:selectedItemName={selectedWeaponName}
+                />
+
+                <!-- selected weapon img -->
+                <div>
+                    <img 
+                        src="/weapon_flat/Path_Wst_{ selectedWeaponId }.png" 
+                        alt="{ selectedWeaponName }"
+                        class="mx-auto"
+                    >
+                </div>
+            </div>
         </div>
     </div>
 </form>

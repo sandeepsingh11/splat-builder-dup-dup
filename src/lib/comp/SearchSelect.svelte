@@ -59,8 +59,8 @@
     >
     <select
         class="w-1/2 sm:w-full rounded-tr rounded-br focus:ring-primary-400 focus:border-primary-400"
-        name=""
-        id=""
+        name="select-{ itemType }"
+        id="select-{ itemType }"
         bind:value={selectedItemId} 
         on:change={selectUpdate}
     >

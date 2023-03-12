@@ -8,26 +8,29 @@ export const load = (async () => {
         ...Gears.Clothes,
         ...Gears.Shoes,
     ];
-    
 
     const translations = Translations['USen'];
+
     const gearTranslations: { [key: string]: string } = {
         ...translations.GearName_Head,
         ...translations.GearName_Clothes,
         ...translations.GearName_Shoes
     };
-    
-    
-    const translatedEntries = Object.entries(gearTranslations);
     let gearList: { id: string, name: string }[] = [];
-    translatedEntries.forEach(gearEntry => {
+    const translatedGearEntries = Object.entries(gearTranslations);
+    translatedGearEntries.forEach(gearEntry => {
         gearList.push({ id: gearEntry[0], name: gearEntry[1] });
+    });
+
+    let weaponList: { id: string, name: string }[] = [];
+    const translatedWeaponEntries = Object.entries(translations.WeaponName_Main);
+    translatedWeaponEntries.forEach(weaponEntry => {
+        weaponList.push({ id: weaponEntry[0], name: weaponEntry[1] });
     });
     
 
-    return { 
-        gears,
-        gearTranslations,
-        gearList
+    return {
+        gearList,
+        weaponList
     };
 }) satisfies PageServerLoad;

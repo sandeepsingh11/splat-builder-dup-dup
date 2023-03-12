@@ -281,6 +281,16 @@ function parseTranslations() {
             const prefix = (section.includes('Head')) ? 'Hed_' : (section.includes('Clothes')) ? 'Clt_' : 'Shs_';
             sectionArr[prefix + key] = sectionValues[i];
           }
+          else if (section.includes('WeaponName')) {
+            // skip certain entries for weapons, subs, and specials
+            if (
+              !key.includes('Coop') &&
+              !key.includes('Msn') &&
+              !key.includes('Mission') &&
+              !key.includes('Rival') &&
+              key !== 'Free'
+            ) sectionArr[key] = sectionValues[i];
+          }
           else {
             sectionArr[key] = sectionValues[i];
           }
