@@ -1,30 +1,11 @@
 <script lang="ts">
 import type { PageServerData } from "./$types";
+import SearchSelect from "$lib/comp/SearchSelect.svelte";
 
 export let data: PageServerData;
 export let selectedGearId: string = 'Hed_ACC003';
+export let selectedGearName: string = 'Tentaclinger Earring';
 
-export let searchSelectValue: string = '';
-export let filteredGearList = data.gearList;
-
-
-function searchSelectUpdate() {
-    filterList();
-}
-
-function filterList() {
-    if (searchSelectValue) {
-        filteredGearList = data.gearList.filter(gearObj => 
-            gearObj.gearName.toLowerCase().includes(searchSelectValue.toLowerCase()) 
-        );
-
-        if (filteredGearList.length > 0) selectedGearId = filteredGearList[0].gearId;
-    }
-    else {
-        filteredGearList = data.gearList;
-        selectedGearId = filteredGearList[0].gearId;
-    }
-}
 </script>
 
 <form action="" method="post" class="w-full md:w-1/2 lg:w-4/5 px-4 md:px-0 md:mx-auto">
@@ -62,43 +43,32 @@ function filterList() {
             <!-- gear selection -->
             <div>
                 <!-- search / select -->
-                <div class="flex">
-                    <input 
-                        type="text"
-                        class="search-input w-1/2 sm:w-full rounded-tl rounded-bl pl-7 focus:ring-primary-400 focus:border-primary-400"
-                        bind:value={searchSelectValue}
-                        on:input={searchSelectUpdate}
-                    >
-                    <select
-                        class="w-1/2 sm:w-full rounded-tr rounded-br focus:ring-primary-400 focus:border-primary-400"
-                        name=""
-                        id=""
-                        bind:value={selectedGearId} 
-                    >
-                        {#each filteredGearList as gear}
-                            <option value="{gear.gearId}">{ data.gearTranslations[gear.gearId] }</option>
-                        {/each}
-                    </select>
-                </div>
-                <!-- https://github.com/sandeepsingh11/splat-build/blob/add-angular/resources/frontend/angular/src/app/pages/gear/gear-form/gear-form.component.html -->
-                <!-- search / select -->
-                <!-- https://github.com/sandeepsingh11/splat-build/blob/add-angular/resources/frontend/angular/src/app/comp/search-select/search-select.component.html -->
-                <!-- <app-search-select 
-                    [list]="baseGears" 
-                    [type]="'gear'" 
-                    (newOption)="updateSelectedValue($event)"
-                >
-                </app-search-select> -->
+                <SearchSelect 
+                    itemList={data.gearList}
+                    itemType="gear"
+                    bind:selectedItemId={selectedGearId}
+                    bind:selectedItemName={selectedGearName}
+                />
 
                 <!-- selected gear img -->
                 <div>
                     <img 
                         src="/gears/{ selectedGearId }.png" 
-                        alt="{ data.gearTranslations[selectedGearId] }"
+                        alt="{ selectedGearName }"
                         class="mx-auto"
                     >
                 </div>
+                
+                <!-- https://github.com/sandeepsingh11/splat-build/blob/add-angular/resources/frontend/angular/src/app/pages/gear/gear-form/gear-form.component.html -->
+                <!-- TODO GET SKILLS AND HANDLE CLICKING / UNCLICKING SKILLS -->
+                <!-- search / select -->
+                <!-- https://github.com/sandeepsingh11/splat-build/blob/add-angular/resources/frontend/angular/src/app/comp/search-select/search-select.component.html -->
             </div>
+        </div>
+
+        <!-- weapon selection and stats -->
+        <div>
+            
         </div>
     </div>
 </form>

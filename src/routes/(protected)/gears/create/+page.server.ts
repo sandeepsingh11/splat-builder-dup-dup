@@ -19,9 +19,9 @@ export const load = (async () => {
     
     
     const translatedEntries = Object.entries(gearTranslations);
-    let gearList: { gearId: string, gearName: string }[] = [];
+    let gearList: { id: string, name: string }[] = [];
     translatedEntries.forEach(gearEntry => {
-        gearList.push({ gearId: gearEntry[0], gearName: gearEntry[1] });
+        gearList.push({ id: gearEntry[0], name: gearEntry[1] });
     });
     
 
