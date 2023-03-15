@@ -1,9 +1,21 @@
 <script lang="ts">
-    export let itemList: {id: string, name: string}[];
+    export let itemList: {
+        id: string, 
+        name: string,
+        subId?: string,
+        subName?: string, 
+        specialId?: string,
+        specialName?: string, 
+    }[];
     export let selectedItemId: string;
     export let selectedItemName: string;
     export let itemType: 'gear' | 'weapon';
-
+    
+    export let selectedSubId: string = '';
+    export let selectedSubName: string = '';
+    export let selectedSpecialId: string = '';
+    export let selectedSpecialName: string = '';
+    
     export let searchTerm: string = '';
     export let filteredItemList = itemList;
 
@@ -17,9 +29,9 @@
     function searchUpdate() {
         filterList();
         selectedItemName = getItemName();
-        
     }
 
+    // filter list by search term
     function filterList() {
         if (searchTerm) {
             filteredItemList = itemList.filter(itemObj => 
@@ -34,18 +46,39 @@
         }
     }
 
+    // get the updated selected item's translated name
     function getItemName() {
         let name = '';
         
         itemList.every(itemObj => {
             if (itemObj.id === selectedItemId) {
                 name = itemObj.name;
+
+                if (itemType === 'weapon') updateSubSpecial(itemObj);
+
                 return false; // break out of every()
             }
             else return true; // continue to next iteration
         });
 
         return name;
+    }
+
+    // get the updated sub and special translated name
+    function updateSubSpecial(weaponObj: {
+        id: string, 
+        name: string,
+        subId?: string,
+        subName?: string, 
+        specialId?: string,
+        specialName?: string, 
+    }) {
+        selectedSubId = weaponObj.subId!;
+        selectedSubName = weaponObj.subName!;
+        selectedSpecialId = weaponObj.specialId!;
+        selectedSpecialName = weaponObj.specialName!;
+
+        console.log(weaponObj);
     }
 </script>
 

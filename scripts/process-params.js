@@ -27,6 +27,10 @@ const gearsPath = `${__dirname}/gears/${version}`;
 const gearOutputPath = `${latestPath}/gears.json`;
 const gearVersionOutputPath = `${versionOutputPath}/gears.json`;
 
+const weaponsPath = `${__dirname}/weapons/${version}`;
+const weaponOutputPath = `${latestPath}/weapons.json`;
+const weaponVersionOutputPath = `${versionOutputPath}/weapons.json`;
+
 const langs = ['USen'];
 const transDir = `${__dirname}/translations`;
 const transOutputPath = `${latestPath}/../translations.json`;
@@ -36,6 +40,7 @@ let subParams = {};
 let specialParams = {};
 let infoHml = {};
 let gears = {};
+let weapons = {};
 let translations = {};
 
 
@@ -58,6 +63,7 @@ function main() {
   parseWSS();
   parseInfoAndHml();
   parseGears();
+  parseWeapons();
   parseTranslations();
   
   // remove imported webp images
@@ -71,9 +77,9 @@ function main() {
 }
 
 function parseWSS() {
-  parseWeapons();
-  parseSubs();
-  parseSpecials();
+  parseWeaponParams();
+  parseSubParams();
+  parseSpecialParams();
 
   const params = {
     version: Number.parseInt(version),
@@ -86,7 +92,7 @@ function parseWSS() {
   writeFile(paramsVersionOutputPath, params);
 }
 
-function parseWeapons() {
+function parseWeaponParams() {
   // get weapon list
   let weaponData = readFileSync(weaponInfoPath);
   weaponData = JSON.parse(weaponData.toString());
@@ -113,7 +119,7 @@ function parseWeapons() {
   })
 }
 
-function parseSubs() {
+function parseSubParams() {
   // get sub list
   let subData = readFileSync(subInfoPath);
   subData = JSON.parse(subData.toString());
@@ -141,7 +147,7 @@ function parseSubs() {
   });
 }
 
-function parseSpecials() {
+function parseSpecialParams() {
   // get special list
   let specialData = readFileSync(specialInfoPath);
   specialData = JSON.parse(specialData.toString());
@@ -230,6 +236,39 @@ function parseGears() {
 
   writeFile(gearOutputPath, gears);
   writeFile(gearVersionOutputPath, gears);
+}
+
+function parseWeapons() {
+  // parse through weapons
+  try {
+    let weaponTypeData = readFileSync(`${weaponsPath}/WeaponInfoMain.json`);
+    weaponTypeData = JSON.parse(weaponTypeData.toString());
+    weaponTypeData.forEach(weapon => {
+      if (weapon.Type === 'Versus') {
+        let weaponObj = {};
+
+        let specialName = weapon['SpecialWeapon'].split('.')[0];
+        specialName = specialName.split('/')[2];
+        let subName = weapon['SubWeapon'].split('.')[0];
+        subName = subName.split('/')[2];
+  
+        weaponObj['Season'] = weapon['Season'];
+        weaponObj['ShopPrice'] = weapon['ShopPrice'];
+        weaponObj['ShopUnlockRank'] = weapon['ShopUnlockRank'];
+        weaponObj['SpecialPoint'] = weapon['SpecialPoint'];
+        weaponObj['Special'] = specialName;
+        weaponObj['Sub'] = subName;
+    
+        weapons[weapon['__RowId']] = weaponObj;
+      }
+    });
+  }
+  catch (error) {
+    console.error(`Got an error trying to read ${weaponsPath}/WeaponInfoMain.json: ${error.message}\n`);
+  }
+
+  writeFile(weaponOutputPath, weapons);
+  writeFile(weaponVersionOutputPath, weapons);
 }
 
 function parseTranslations() {

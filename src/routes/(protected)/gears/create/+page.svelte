@@ -7,6 +7,10 @@ export let selectedGearId: string = 'Hed_ACC003';
 export let selectedGearName: string = 'Tentaclinger Earring';
 export let selectedWeaponId: string = 'Blaster_LightLong_00';
 export let selectedWeaponName: string = 'Rapid Blaster Pro';
+export let selectedSubId: string = 'PoisonMist';
+export let selectedSubName: string = 'Toxic Mist';
+export let selectedSpecialId: string = 'SpBlower';
+export let selectedSpecialName: string = 'Ink Vac';
 
 </script>
 
@@ -63,8 +67,6 @@ export let selectedWeaponName: string = 'Rapid Blaster Pro';
                 
                 <!-- https://github.com/sandeepsingh11/splat-build/blob/add-angular/resources/frontend/angular/src/app/pages/gear/gear-form/gear-form.component.html -->
                 <!-- TODO GET SKILLS AND HANDLE CLICKING / UNCLICKING SKILLS -->
-                <!-- search / select -->
-                <!-- https://github.com/sandeepsingh11/splat-build/blob/add-angular/resources/frontend/angular/src/app/comp/search-select/search-select.component.html -->
             </div>
         </div>
 
@@ -78,17 +80,56 @@ export let selectedWeaponName: string = 'Rapid Blaster Pro';
                     itemType="weapon"
                     bind:selectedItemId={selectedWeaponId}
                     bind:selectedItemName={selectedWeaponName}
+                    bind:selectedSubId
+                    bind:selectedSubName
+                    bind:selectedSpecialId
+                    bind:selectedSpecialName
                 />
 
                 <!-- selected weapon img -->
-                <div>
+                <div 
+                    id="weapon-container" 
+                    class="grid grid-cols-1 grid-cols-2 gap-x-4"
+                >
                     <img 
+                        id="weapon-img"
+                        class="justify-self-center" 
                         src="/weapon_flat/Path_Wst_{ selectedWeaponId }.png" 
                         alt="{ selectedWeaponName }"
-                        class="mx-auto"
+                        width="128px" 
+                        height="128px"
                     >
+                    <div class="grid grid-cols-2 items-center gap-x-2">
+                        <img 
+                            id="sub-img" 
+                            src="/subspe/Wsb_{ selectedSubId }00.png" 
+                            alt="{ selectedSubName }" 
+                            class="justify-self-center"
+                            width="64px" 
+                            height="64px"
+                        >
+                        <img 
+                            id="special-img" 
+                            src="/subspe/Wsp_{ selectedSpecialId }00.png" 
+                            alt="{ selectedSpecialName }" 
+                            class="justify-self-center"
+                            width="64px" 
+                            height="64px"
+                        >
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </form>
+
+<style>
+    /* add an outline to the sub and special pngs */
+    #sub-img,
+    #special-img {
+        -webkit-filter: drop-shadow(1px 1px 0 black)
+                        drop-shadow(-1px -1px 0 white);
+        filter: drop-shadow(1px 1px 0 black)
+                drop-shadow(-1px -1px 0 white);
+    }
+</style>
