@@ -1,17 +1,70 @@
 <script lang="ts">
-import type { PageServerData } from "./$types";
-import SearchSelect from "$lib/comp/SearchSelect.svelte";
+    import type { PageServerData } from "./$types";
+    import SearchSelect from "$lib/comp/SearchSelect.svelte";
+    import SkillBubble from "$lib/comp/SkillBubble.svelte";
+    import SkillIcon from "$lib/comp/SkillIcon.svelte";
 
-export let data: PageServerData;
-export let selectedGearId: string = 'Hed_ACC003';
-export let selectedGearName: string = 'Tentaclinger Earring';
-export let selectedWeaponId: string = 'Blaster_LightLong_00';
-export let selectedWeaponName: string = 'Rapid Blaster Pro';
-export let selectedSubId: string = 'PoisonMist';
-export let selectedSubName: string = 'Toxic Mist';
-export let selectedSpecialId: string = 'SpBlower';
-export let selectedSpecialName: string = 'Ink Vac';
+    export let data: PageServerData;
 
+    export let selectedGearId: string = 'Hed_ACC003';
+    export let selectedGearName: string = 'Tentaclinger Earring';
+
+    export let selectedWeaponId: string = 'Blaster_LightLong_00';
+    export let selectedWeaponName: string = 'Rapid Blaster Pro';
+    export let selectedSubId: string = 'PoisonMist';
+    export let selectedSubName: string = 'Toxic Mist';
+    export let selectedSpecialId: string = 'SpBlower';
+    export let selectedSpecialName: string = 'Ink Vac';
+
+    export let skillBubbles = data.skillBubbles;
+    export let mainSkills = data.mainSkills;
+    export let nonMainSkills = data.nonMainSkills;
+
+    function bubbleClicked(event: CustomEvent) {
+        const clickedBubble = event.detail;
+
+        skillBubbles[clickedBubble.number - 1].id = 'Unknown';
+        skillBubbles[clickedBubble.number - 1].name = 'Unknown';
+
+        // trigger reactive reload
+        skillBubbles = skillBubbles;        
+    }
+
+    function skillClicked(event: CustomEvent) {
+        const clickedSkill = event.detail;
+        const nextIndex = getNextSkillBubble();
+
+        // if there is an un-inputted skill bubble, set
+        if (nextIndex !== -1) {
+            // if a main skill was clicked, only set if 1st bubble is next
+            // or if non main skill, set
+            if (
+                (clickedSkill.isMain &&
+                nextIndex === 0) ||
+                !clickedSkill.isMain
+            ) {
+                skillBubbles[nextIndex].id = clickedSkill.key;
+                skillBubbles[nextIndex].name = clickedSkill.value;
+
+                // trigger reactive reload
+                skillBubbles = skillBubbles;
+            }
+        }
+    }
+
+    function getNextSkillBubble() {
+        let nextBubbleIndex = -1;
+
+        skillBubbles.every((bubble, i) => {
+            if (bubble.name === 'Unknown') {
+                nextBubbleIndex = i;
+                return false;
+            }
+            else return true;
+        });
+
+        return nextBubbleIndex;
+    }
 </script>
 
 <form action="" method="post" class="w-full md:w-1/2 lg:w-4/5 px-4 md:px-0 md:mx-auto">
@@ -66,7 +119,40 @@ export let selectedSpecialName: string = 'Ink Vac';
                 </div>
                 
                 <!-- https://github.com/sandeepsingh11/splat-build/blob/add-angular/resources/frontend/angular/src/app/pages/gear/gear-form/gear-form.component.html -->
-                <!-- TODO GET SKILLS AND HANDLE CLICKING / UNCLICKING SKILLS -->
+            </div>
+
+            <!-- skills input -->
+            <div class="grid grid-cols-4 justify-items-center items-end mb-4">
+                {#each skillBubbles as skillBubble}
+                    <SkillBubble 
+                        skill={skillBubble}
+                        on:bubbleClicked={bubbleClicked}
+                    />
+                {/each}
+            </div>
+
+            <!-- non main skills -->
+            <div class="grid grid-cols-7 mb-6">
+                {#each nonMainSkills as nonMainSkill}
+                    <SkillIcon
+                        skill={nonMainSkill}
+                        isMain={false}
+                        on:skillClicked={skillClicked}
+                    />
+                {/each}
+            </div>
+
+            <hr class="w-4/5 mx-auto border-primary-400 border-t-2">
+
+            <!-- main skills -->
+            <div class="grid grid-cols-7 mt-6">
+                {#each mainSkills as mainSkill}
+                    <SkillIcon
+                        skill={mainSkill}
+                        isMain={true}
+                        on:skillClicked={skillClicked}
+                    />
+                {/each}
             </div>
         </div>
 
@@ -86,7 +172,7 @@ export let selectedSpecialName: string = 'Ink Vac';
                     bind:selectedSpecialName
                 />
 
-                <!-- selected weapon img -->
+                <!-- selected weapon, sub, special img -->
                 <div 
                     id="weapon-container" 
                     class="grid grid-cols-1 grid-cols-2 gap-x-4"

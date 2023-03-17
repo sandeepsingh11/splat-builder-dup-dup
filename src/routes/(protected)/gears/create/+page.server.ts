@@ -63,9 +63,72 @@ export const load = (async () => {
     });
 
 
+    // default skill bubbles
+    const skillBubbles = [
+        {
+            number: 1,
+            id: 'Unknown',
+            name: 'Unknown',
+            isMain: true
+        },
+        {
+            number: 2,
+            id: 'Unknown',
+            name: 'Unknown',
+            isMain: false
+        },
+        {
+            number: 3,
+            id: 'Unknown',
+            name: 'Unknown',
+            isMain: false
+        },
+        {
+            number: 4,
+            id: 'Unknown',
+            name: 'Unknown',
+            isMain: false
+        }
+    ];
+
+    // prep skills
+    let mainSkills: {[key: string]: string}[] = [];
+    let nonMainSkills: {[key: string]: string}[] = [];
+    const skillEntries = Object.entries(translations.GearPowerName);
+    skillEntries.forEach(skillEntry => {
+        // main skills
+        if (
+            skillEntry[0] === 'Action_Up' ||
+            skillEntry[0] === 'ComeBack' ||
+            skillEntry[0] === 'DeathMarking' ||
+            skillEntry[0] === 'EndAllUp' ||
+            skillEntry[0] === 'Exorcist' ||
+            skillEntry[0] === 'ExSkillDouble' ||
+            skillEntry[0] === 'MinorityUp' ||
+            skillEntry[0] === 'ObjectEffect_Up' ||
+            skillEntry[0] === 'SomersaultLanding' ||
+            skillEntry[0] === 'SquidMoveSpatter_Reduction' ||
+            skillEntry[0] === 'StartAllUp' ||
+            skillEntry[0] === 'SuperJumpSign_Hide' ||
+            skillEntry[0] === 'ThermalInk'
+        ) {
+            mainSkills.push({[skillEntry[0]]: skillEntry[1]});
+        }
+        // exclude 'none
+        else if (skillEntry[0] === 'None') {}
+        // non main skills
+        else {
+            nonMainSkills.push({[skillEntry[0]]: skillEntry[1]});
+        }
+    });
+    
+
 
     return {
         gearList,
-        weaponList
+        weaponList,
+        skillBubbles,
+        mainSkills,
+        nonMainSkills
     };
 }) satisfies PageServerLoad;
