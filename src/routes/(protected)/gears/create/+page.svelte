@@ -26,6 +26,13 @@
 
     let stats: stat[] = [];
 
+    function searchSelectChanged(event: CustomEvent) {
+        const searchSelectEvent = event.detail;
+
+        // update skill stats if weapon changed
+        if (searchSelectEvent.type === 'weapon') updateStats();
+    }
+
     function bubbleClicked(event: CustomEvent) {    
         const clickedBubble = event.detail;
 
@@ -186,6 +193,7 @@
                     bind:selectedSubName
                     bind:selectedSpecialId
                     bind:selectedSpecialName
+                    on:searchSelectChanged={searchSelectChanged}
                 />
 
                 <!-- selected weapon, sub, special img -->

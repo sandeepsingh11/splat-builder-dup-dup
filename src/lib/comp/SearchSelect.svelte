@@ -1,4 +1,8 @@
 <script lang="ts">
+    import { createEventDispatcher } from "svelte";
+
+    const dispatch = createEventDispatcher();
+
     export let itemList: {
         id: string, 
         name: string,
@@ -23,12 +27,16 @@
     // on select input change
     function selectUpdate() {
         selectedItemName = getItemName();
+
+        dispatch('searchSelectChanged', {type: itemType, selectedId: selectedItemId});
     }
 
     // on search input change
     function searchUpdate() {
         filterList();
         selectedItemName = getItemName();
+
+        dispatch('searchSelectChanged', {type: itemType, selectedId: selectedItemId});
     }
 
     // filter list by search term
@@ -77,8 +85,6 @@
         selectedSubName = weaponObj.subName!;
         selectedSpecialId = weaponObj.specialId!;
         selectedSpecialName = weaponObj.specialName!;
-
-        console.log(weaponObj);
     }
 </script>
 
