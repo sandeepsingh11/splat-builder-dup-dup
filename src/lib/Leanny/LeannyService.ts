@@ -1,26 +1,39 @@
-import params from '$lib/params/latest-params.json';
-import weaponInfo from '$lib/params/WeaponInfoMain.json';
-import subInfo from '$lib/params/SubInfoMain.json';
-import specialInfo from '$lib/params/SpecialInfoMain.json';
-import hml from '$lib/params/hml.json';
+import params from '$lib/Leanny/latest/params.json';
+import infoHml from '$lib/Leanny/latest/infoHml.json';
+
+
+const version = 210;
+
+const weaponParams: {[index: string]: any} = params.weapons;
+const subParams: {[index: string]: any} = params.subs;
+const specialParams: {[index: string]: any} = params.specials;
+
+const weaponInfo: {[key: string]: any} = infoHml.Main;
+const subInfo = infoHml.Sub;
+const specialInfo = infoHml.Special;
+const hmlData: {[index: string]: number[]} = infoHml.Hml;
+
+export interface effect {
+    name: string,
+    value: number,
+    percent: number
+};
+
+export interface stat {
+    name: string,
+    effects: effect[]
+}
 
 export class LeannyService {
-    version = 210;
-
     // sploosh-o-matic, rapid blaster, splat roller, splat charger, splat dulies, ink brush, heavy splatling, slosher, tenta brella, splatana wiper
     weaponIds = [0, 240, 1010, 2010, 5010, 1100, 4010, 3000, 6010, 8010];
     allAPs = [0, 10, 13];
-    
-    weaponParams: {[index: string]: any} = params.weapons;
-    subParams: {[index: string]: any} = params.subs;
-    specialParams: {[index: string]: any} = params.specials;
 
-    weaponInfo = weaponInfo.filter((obj: { Type: string; }) => obj.Type === 'Versus');
-    subInfo = subInfo.filter((obj: { Type: string; }) => obj.Type === 'Versus');
-    specialInfo = specialInfo.filter((obj: { Type: string; }) => obj.Type === 'Versus');
-    allHml: {[index: string]: number[]} = hml;
+    skillAps: {[key: string]: number} = {};
+    selectedWeaponName: string = 'Blaster_LightLong_00';
+    stats: stat[] = [];
 
-    printData: {weaponId: number, APs: number, effects: any}[] = [];
+    printData: {weaponId: string, APs: number, effects: any}[] = [];
     
     constructor() {
         // power ups
@@ -31,9 +44,7 @@ export class LeannyService {
         // this.calcSsu();
     }
 
-
-
-    printEffect(effects: any, numOfAps: number, weaponId: number) {
+    printEffect(effects: any, numOfAps: number, weaponId: string) {
         const data = {
             weaponId: weaponId,
             APs: numOfAps,
@@ -42,217 +53,296 @@ export class LeannyService {
         this.printData.push(data);
     }
 
-    calcIsm() {
-        const effectName = 'ConsumeRt_Main';
-        const hml = this.allHml[effectName];
+    calc(inputtedSkills: {id: string, isMain: boolean}[], weaponName: string) {
+        // reset stats
+        this.stats = [];        
 
-        this.weaponIds.forEach(weaponId => {
-            let inkConsume: number;
-            switch (this.weaponParams[weaponId].WeaponName.split('_')[0]) {
-                case 'Roller':
-                    inkConsume = this.weaponParams[weaponId].GameParameters.WeaponVerticalSwingParam.InkConsume;
+        // get APs from inputted skills
+        this.prepInputtedSkills(inputtedSkills);
+        this.selectedWeaponName = weaponName;
+
+        Object.keys(this.skillAps).forEach(skillAp => {
+            switch (skillAp) {
+                case 'MainInk_Save':
+                    this.calcIsm();
                     break;
-                case 'Charger':
-                    inkConsume = this.weaponParams[weaponId].GameParameters.WeaponParam.InkConsumeFullCharge;
+            
+                case 'SubInk_Save':
+                    this.calcIss();
                     break;
-                case 'Brush':
-                    inkConsume = this.weaponParams[weaponId].GameParameters.WeaponSwingParam.InkConsume;
+            
+                case 'InkRecovery_Up':
+                    this.calcIru();
                     break;
-                case 'Shelter':
-                    inkConsume = this.weaponParams[weaponId].GameParameters.spl__WeaponShelterShotgunParam.InkConsume; // shots TODO: nonextistant for 6000
-                    // inkConsume = this.weaponParams[weaponId].GameParameters.spl__WeaponShelterCanopyParam.InkConsumeUmbrella; // shield launches
+            
+                case 'HumanMove_Up':
+                    this.calcRsu();
                     break;
-                case 'Saber':
-                    inkConsume = this.weaponParams[weaponId].GameParameters.spl__WeaponSaberParam.ChargeParam.InkConsumeFullCharge;
-                    // inkConsume = this.weaponParams[weaponId].GameParameters.spl__WeaponSaberParam.SwingParam.InkConsume; // TODO enable both
+            
+                case 'SquidMove_Up':
+                    this.calcSsu();
                     break;
+            
                 default:
-                    inkConsume = this.weaponParams[weaponId].GameParameters.WeaponParam.InkConsume;
                     break;
             }
-
-            this.allAPs.forEach((APs) => {
-                const result = this.calculateAbilityEffect(APs, hml[0], hml[1], hml[2]);
-                const effects = [
-                    // {
-                    //   name: 'Ink Consumption / Shot',
-                    //   value: parseFloat((result[0] * inkConsume).toFixed(5)),
-                    //   percent: parseFloat((result[1] * 100).toFixed(2)),
-                    // },
-                    {
-                        name: 'Max Number of Shots',
-                        value: (1.0 / (result[0] * inkConsume)).toFixed(2), // TODO: fetch inkConsume || InkConsumeFullCharge (charger)
-                        percent: parseFloat((result[1] * 100).toFixed(2)),
-                    },
-                ];
-
-                this.printEffect(effects, APs, weaponId);
-            });
         });
+
+        return this.stats;
+    }
+
+    prepInputtedSkills(inputtedSkills: {id: string, isMain: boolean}[]) {
+        // map the number of mains and subs per inputted skill
+        let inputtedSkillNames: string[] = [];
+        let inputtedSkillObjs: {
+            name: string,
+            numOfMain: number,
+            numOfSubs: number
+        }[] = [];
+        inputtedSkills.forEach(inputtedSkill => {
+            // if duplicate inputted skill, add on
+            if (inputtedSkillNames.includes(inputtedSkill.id)) {
+                inputtedSkillObjs = inputtedSkillObjs.map(skillObj => {
+                    if (skillObj.name === inputtedSkill.id) {
+                        const isMain = inputtedSkill.isMain ? 1 : 0;
+                        const isSub = inputtedSkill.isMain ? 0 : 1;
+
+                        skillObj.numOfMain += isMain;
+                        skillObj.numOfSubs += isSub;
+                    }
+
+                    return skillObj;
+                });
+            }
+            // else record the value and push
+            else {
+                inputtedSkillNames.push(inputtedSkill.id);
+
+                const isMain = inputtedSkill.isMain ? 1 : 0;
+                const isSub = inputtedSkill.isMain ? 0 : 1;
+                inputtedSkillObjs.push({name: inputtedSkill.id, numOfMain: isMain, numOfSubs: isSub});
+            }
+        });
+
+        // get APs per inputted skill
+        inputtedSkillObjs.forEach(skillObj => {
+            const aps = this.getAPs(skillObj.numOfMain, skillObj.numOfSubs);
+            
+            this.skillAps[skillObj.name] = aps;
+            // this.skillAps.push({[skillObj.name]: aps});
+        });
+    }
+
+    getSelectedWeaponId(): number {
+        return weaponInfo[this.selectedWeaponName].Id;
+    }
+
+    calcIsm() {
+        const effectName: string = 'MainInk_Save';
+        const hml = hmlData['ConsumeRt_Main'];
+        const APs = this.skillAps[effectName];
+        const selectedWeaponId = this.getSelectedWeaponId();
+
+        let inkConsume: number;
+        switch (weaponParams[selectedWeaponId].WeaponName.split('_')[0]) {
+            case 'Roller':
+                inkConsume = weaponParams[selectedWeaponId].GameParameters.WeaponVerticalSwingParam.InkConsume;
+                break;
+            case 'Charger':
+                inkConsume = weaponParams[selectedWeaponId].GameParameters.WeaponParam.InkConsumeFullCharge;
+                break;
+            case 'Brush':
+                inkConsume = weaponParams[selectedWeaponId].GameParameters.WeaponSwingParam.InkConsume;
+                break;
+            case 'Shelter':
+                inkConsume = weaponParams[selectedWeaponId].GameParameters.spl__WeaponShelterShotgunParam.InkConsume; // shots TODO: nonextistant for 6000
+                // inkConsume = weaponParams[selectedWeaponId].GameParameters.spl__WeaponShelterCanopyParam.InkConsumeUmbrella; // shield launches
+                break;
+            case 'Saber':
+                inkConsume = weaponParams[selectedWeaponId].GameParameters.spl__WeaponSaberParam.ChargeParam.InkConsumeFullCharge;
+                // inkConsume = weaponParams[selectedWeaponId].GameParameters.spl__WeaponSaberParam.SwingParam.InkConsume; // TODO enable both
+                break;
+            default:
+                inkConsume = weaponParams[selectedWeaponId].GameParameters.WeaponParam.InkConsume;
+                break;
+        }
+
+        const result = this.calculateAbilityEffect(APs, hml[0], hml[1], hml[2]);        
+        const effects = [
+            {
+                name: 'Max Number of Shots',
+                value: parseFloat((1.0 / (result[0] * inkConsume)).toFixed(2)), // TODO: fetch inkConsume || InkConsumeFullCharge (charger)
+                percent: parseFloat((result[1] * 100).toFixed(2)),
+            },
+        ];
+
+        this.stats.push({name: effectName, effects: effects});
+        this.printEffect(effects, APs, this.selectedWeaponName);
 
         return this.printData;
     }
 
     calcIss() {
-        this.weaponIds.forEach(weaponId => {
-            let consumeLvl = 2;
-            let inkConsume = 0.7;
+        const effectName: string = 'SubInk_Save';
+        const APs = this.skillAps[effectName];
+        const selectedWeaponId = this.getSelectedWeaponId();
 
-            for (let obj of this.weaponInfo) {
-                if (obj.Id === weaponId) {
-                    const subFullName = obj.SubWeapon.split('.');
-                    const subName = subFullName[0].split('/')[2];
+        let consumeLvl = 2;
+        let inkConsume = 0.7;
 
-                    Object.keys(params.subs).forEach(subId => {
-                        const sub = this.subParams[subId];
-                        
-                        if (sub.SubName === subName) {
-                            if ('SubWeaponSetting' in sub.GameParameters) {
-                                consumeLvl = sub.GameParameters.SubWeaponSetting.SubInkSaveLv ?? 2;
-                            }
+        const weaponInfoArr = Object.values(weaponInfo);
+        for (let obj of weaponInfoArr) {
+            if (obj.Id === selectedWeaponId) {
+                const subFullName = obj.SubWeapon.split('.');
+                const subName = subFullName[0].split('/')[2];
 
-                            if ('WeaponParam' in sub.GameParameters) {
-                                inkConsume = sub.GameParameters.WeaponParam.InkConsume ?? 0.7;
-                            }
-
+                Object.keys(params.subs).forEach(subId => {
+                    const sub = subParams[subId];
+                    
+                    if (sub.SubName === subName) {
+                        if ('SubWeaponSetting' in sub.GameParameters) {
+                            consumeLvl = sub.GameParameters.SubWeaponSetting.SubInkSaveLv ?? 2;
                         }
-                    });
-                    break;
-                }
-            };
 
-            const hml = this.allHml['ConsumeRt_Sub_Lv' + consumeLvl.toString()];
+                        if ('WeaponParam' in sub.GameParameters) {
+                            inkConsume = sub.GameParameters.WeaponParam.InkConsume ?? 0.7;
+                        }
 
-            this.allAPs.forEach((APs) => {
-                const result = this.calculateAbilityEffect(APs, hml[0], hml[1], hml[2]);
-                
-                const effects = [
-                    {
-                    name: 'Ink Consumption',
-                    value: parseFloat((result[0] * inkConsume * 100).toFixed(2)),
-                    percent: parseFloat((result[1] * 100).toFixed(2)),
-                    },
-                ];
-                
-                this.printEffect(effects, APs, weaponId);
-            });
-        });
+                    }
+                });
+                break;
+            }
+        };
+
+        const hml = hmlData['ConsumeRt_Sub_Lv' + consumeLvl.toString()];
+
+        const result = this.calculateAbilityEffect(APs, hml[0], hml[1], hml[2]);
+        const effects = [
+            {
+                name: 'Ink Consumption',
+                value: parseFloat((result[0] * inkConsume * 100).toFixed(2)),
+                percent: parseFloat((result[1] * 100).toFixed(2)),
+            },
+        ];
+
+        this.stats.push({name: effectName, effects: effects});
+        this.printEffect(effects, APs, this.selectedWeaponName);
 
         return this.printData;
     }
 
     calcIru() {
-        const effectName = ['InkRecoverFrm_Std','InkRecoverFrm_Stealth'];
-        const hmlSquid = this.allHml[effectName[1]];
-        const hmlHuman = this.allHml[effectName[0]];
+        const effectName = 'InkRecovery_Up';
+        const hmlSquid = hmlData['InkRecoverFrm_Std'];
+        const hmlHuman = hmlData['InkRecoverFrm_Stealth'];
+        const APs = this.skillAps[effectName];
 
-        this.weaponIds.forEach(weaponId => {
-            this.allAPs.forEach((APs) => {
-                const resultSquid = this.calculateAbilityEffect(APs, hmlSquid[0], hmlSquid[1], hmlSquid[2]);
-                const resultHuman = this.calculateAbilityEffect(APs, hmlHuman[0], hmlHuman[1], hmlHuman[2]);
-                
-                const effects = [
-                    {
-                    name: 'Recovery Time in Ink - Seconds',
-                    value: parseFloat((Math.ceil(resultSquid[0]) / 60).toFixed(2)),
-                    percent: parseFloat((resultSquid[1] * 100).toFixed(2)),
-                    },
-                    {
-                    name: 'Recovery Time Standing - Seconds',
-                    value: parseFloat((Math.ceil(resultHuman[0]) / 60).toFixed(2)),
-                    percent: parseFloat((resultHuman[1] * 100).toFixed(2)),
-                    }
-                ];
-                
-                this.printEffect(effects, APs, weaponId);
-            });
-        });
+        const resultSquid = this.calculateAbilityEffect(APs, hmlSquid[0], hmlSquid[1], hmlSquid[2]);
+        const resultHuman = this.calculateAbilityEffect(APs, hmlHuman[0], hmlHuman[1], hmlHuman[2]);
+        
+        const effects = [
+            {
+                name: 'Recovery Time in Ink - Seconds',
+                value: parseFloat((Math.ceil(resultSquid[0]) / 60).toFixed(2)),
+                percent: parseFloat((resultSquid[1] * 100).toFixed(2)),
+            },
+            {
+                name: 'Recovery Time Standing - Seconds',
+                value: parseFloat((Math.ceil(resultHuman[0]) / 60).toFixed(2)),
+                percent: parseFloat((resultHuman[1] * 100).toFixed(2)),
+            }
+        ];
+
+        this.stats.push({name: effectName, effects: effects});
+        this.printEffect(effects, APs, this.selectedWeaponName);
 
         return this.printData;
     }
 
-    calcRsu() {   
-        this.weaponIds.forEach(weaponId => {
-            // run speed
-            const moveVel = this.weaponParams[weaponId].GameParameters.MainWeaponSetting.WeaponSpeedType ?? 'Mid';
-            const moveVelKey = `MoveVel_Human${(moveVel !== 'Mid') ? '_' + moveVel : ''}`;
-            const hmlMoving = this.allHml[moveVelKey];
-            
-            // run speed shooting
-            const gameParams = this.weaponParams[weaponId].GameParameters;
-            const shootingVel = (gameParams.WeaponParam) 
-                ? gameParams.WeaponParam.MoveSpeed ??
-                    gameParams.WeaponParam.MoveSpeedFullCharge
-                : (gameParams.spl__WeaponShelterShotgunParam)
-                    ? gameParams.spl__WeaponShelterShotgunParam.MoveSpeed 
-                    : null
-            const hmlShooting = (!(this.weaponParams[weaponId].WeaponName.includes('Spinner')))
-                ? this.allHml['MoveVelRt_Shot']
-                : [
-                    gameParams.MainWeaponSetting.Overwrite_MoveVelRt_Shot_High,
-                    gameParams.MainWeaponSetting.Overwrite_MoveVelRt_Shot_Mid,
-                    gameParams.MainWeaponSetting.Overwrite_MoveVelRt_Shot_Low,
-                ];
+    calcRsu() {
+        const effectName: string = 'HumanMove_Up';
+        const APs = this.skillAps[effectName];
+        const selectedWeaponId = this.getSelectedWeaponId();
 
-            this.allAPs.forEach((APs) => {
-                let effects = [];
-                
-                // run speed
-                const resultMoving = this.calculateAbilityEffect(APs, hmlMoving[0], hmlMoving[1], hmlMoving[2]);
-                const runSpeedEffect = {
-                    name: 'Run Speed (DU/Frame)',
-                    value: parseFloat((resultMoving[0] * 10).toFixed(3)),
-                    percent: parseFloat((resultMoving[1] * 100).toFixed(2))
-                };
-                effects.push(runSpeedEffect);
+        // run speed
+        const moveVel = weaponParams[selectedWeaponId].GameParameters.MainWeaponSetting.WeaponSpeedType ?? 'Mid';
+        const moveVelKey = `MoveVel_Human${(moveVel !== 'Mid') ? '_' + moveVel : ''}`;
+        const hmlMoving = hmlData[moveVelKey];
         
-                // run speed shooting (if applicable)
-                if (shootingVel !== null) {
-                    const resultShooting = this.calculateAbilityEffect(APs, hmlShooting[0], hmlShooting[1], hmlShooting[2]);
-                    const runSpeedEffectShooting = {
-                        name: 'Run Speed (Shooting) (DU/Frame)',
-                        value: parseFloat((resultShooting[0] * shootingVel * 10).toFixed(3)),
-                        percent: parseFloat((resultShooting[1] * 100).toFixed(2))
-                    };
-                    effects.push(runSpeedEffectShooting);
-                }
-                
-                this.printEffect(effects, APs, weaponId);
-            });
-        });
+        // run speed shooting
+        const gameParams = weaponParams[selectedWeaponId].GameParameters;
+        const shootingVel = (gameParams.WeaponParam) 
+            ? gameParams.WeaponParam.MoveSpeed ??
+                gameParams.WeaponParam.MoveSpeedFullCharge
+            : (gameParams.spl__WeaponShelterShotgunParam)
+                ? gameParams.spl__WeaponShelterShotgunParam.MoveSpeed 
+                : null
+        const hmlShooting = (!(weaponParams[selectedWeaponId].WeaponName.includes('Spinner')))
+            ? hmlData['MoveVelRt_Shot']
+            : [
+                gameParams.MainWeaponSetting.Overwrite_MoveVelRt_Shot_High,
+                gameParams.MainWeaponSetting.Overwrite_MoveVelRt_Shot_Mid,
+                gameParams.MainWeaponSetting.Overwrite_MoveVelRt_Shot_Low,
+            ];
+
+        let effects = [];
+            
+        // run speed
+        const resultMoving = this.calculateAbilityEffect(APs, hmlMoving[0], hmlMoving[1], hmlMoving[2]);
+        const runSpeedEffect = {
+            name: 'Run Speed (DU/Frame)',
+            value: parseFloat((resultMoving[0] * 10).toFixed(3)),
+            percent: parseFloat((resultMoving[1] * 100).toFixed(2))
+        };
+        effects.push(runSpeedEffect);
+
+        // run speed shooting (if applicable)
+        if (shootingVel !== null) {
+            const resultShooting = this.calculateAbilityEffect(APs, hmlShooting[0], hmlShooting[1], hmlShooting[2]);
+            const runSpeedEffectShooting = {
+                name: 'Run Speed (Shooting) (DU/Frame)',
+                value: parseFloat((resultShooting[0] * shootingVel * 10).toFixed(3)),
+                percent: parseFloat((resultShooting[1] * 100).toFixed(2))
+            };
+            effects.push(runSpeedEffectShooting);
+        }
+
+        this.stats.push({name: effectName, effects: effects});
+        this.printEffect(effects, APs, this.selectedWeaponName);
 
         return this.printData;
     }
 
     // TODO add rainmaker?
     calcSsu() {
-        this.weaponIds.forEach(weaponId => {
-            const moveVel = this.weaponParams[weaponId].GameParameters.MainWeaponSetting.WeaponSpeedType ?? 'Mid';
-            const moveVelKey = `MoveVel_Stealth${(moveVel !== 'Mid') ? '_' + moveVel : ''}`;
-            const hml = this.allHml[moveVelKey];
-            
-            this.allAPs.forEach(APs => {
-                const result = this.calculateAbilityEffect(APs, hml[0], hml[1], hml[2]);
-                const ns = (false) ? 0.9 : 1; // TODO handle ninja squid
-                let effects = [];
-            
-                const swimSpeedEffect = {
-                    name: 'Swim Speed (DU/Frame)',
-                    value: parseFloat((result[0] * ns * 10).toFixed(3)),
-                    percent: parseFloat((result[1] * 100).toFixed(2)),
-                };
-                effects.push(swimSpeedEffect);
+        const effectName: string = 'SquidMove_Up';
+        const APs = this.skillAps[effectName];
+        const selectedWeaponId = this.getSelectedWeaponId();
 
-                this.printEffect(effects, APs, weaponId);
-            });
-        });
+        const moveVel = weaponParams[selectedWeaponId].GameParameters.MainWeaponSetting.WeaponSpeedType ?? 'Mid';
+        const moveVelKey = `MoveVel_Stealth${(moveVel !== 'Mid') ? '_' + moveVel : ''}`;
+        const hml = hmlData[moveVelKey];
+
+        const result = this.calculateAbilityEffect(APs, hml[0], hml[1], hml[2]);
+        const ns = (false) ? 0.9 : 1; // TODO handle ninja squid
+        let effects = [];
+    
+        const swimSpeedEffect = {
+            name: 'Swim Speed (DU/Frame)',
+            value: parseFloat((result[0] * ns * 10).toFixed(3)),
+            percent: parseFloat((result[1] * 100).toFixed(2)),
+        };
+        effects.push(swimSpeedEffect);
+
+        this.stats.push({name: effectName, effects: effects});
+        this.printEffect(effects, APs, this.selectedWeaponName);
 
         return this.printData;
     }
 
     calcScu() {
         const effectName = 'IncreaseRt_Special';
-        const hml = this.allHml[effectName];
+        const hml = hmlData[effectName];
         this.allAPs.forEach((APs) => {
             const result = this.calculateAbilityEffect(APs, hml[0], hml[1], hml[2]);
             console.log(`APs: ${APs} - ${result}`);
@@ -261,7 +351,7 @@ export class LeannyService {
 
     calcSsv() {
         const effectName = 'SpecialGaugeRt_Restart';
-        const hml = this.allHml[effectName];
+        const hml = hmlData[effectName];
         this.allAPs.forEach((APs) => {
             const result = this.calculateAbilityEffect(APs, hml[0], hml[1], hml[2]);
             console.log(`APs: ${APs} - ${result}`);
@@ -303,7 +393,7 @@ export class LeannyService {
             'TrizookaDistanceDamageDistanceRate',
             'UltraStampSpecialDurationFrame'
         ];
-        const hml = this.allHml[effectName[0]];
+        const hml = hmlData[effectName[0]];
         this.allAPs.forEach((APs) => {
             const result = this.calculateAbilityEffect(APs, hml[0], hml[1], hml[2]);
             console.log(`APs: ${APs} - ${result}`);
@@ -312,7 +402,7 @@ export class LeannyService {
 
     calcQrs() {
         const effectName = ['Dying_AroundFrm','Dying_ChaseFrm'];
-        const hml = this.allHml[effectName[0]];
+        const hml = hmlData[effectName[0]];
         this.allAPs.forEach((APs) => {
             const result = this.calculateAbilityEffect(APs, hml[0], hml[1], hml[2]);
             console.log(`APs: ${APs} - ${result}`);
@@ -321,7 +411,7 @@ export class LeannyService {
 
     calcQsj() {
         const effectName = ['SuperJump_ChargeFrm','SuperJump_MoveFrm'];
-        const hml = this.allHml[effectName[0]];
+        const hml = hmlData[effectName[0]];
         this.allAPs.forEach((APs) => {
             const result = this.calculateAbilityEffect(APs, hml[0], hml[1], hml[2]);
             console.log(`APs: ${APs} - ${result}`);
@@ -351,7 +441,7 @@ export class LeannyService {
             'MineDistanceDamageDistanceRate-table',
             'MineSensorRadius-table',
         ];
-        const hml = this.allHml[effectName[0]];
+        const hml = hmlData[effectName[0]];
         this.allAPs.forEach((APs) => {
             const result = this.calculateAbilityEffect(APs, hml[0], hml[1], hml[2]);
             console.log(`APs: ${APs} - ${result}`);
@@ -368,7 +458,7 @@ export class LeannyService {
             'OpInk_MoveVel_Shot-table',
             'OpInk_MoveVel_ShotK-table',
         ];
-        const hml = this.allHml[effectName[0]];
+        const hml = hmlData[effectName[0]];
         this.allAPs.forEach((APs) => {
             const result = this.calculateAbilityEffect(APs, hml[0], hml[1], hml[2]);
             console.log(`APs: ${APs} - ${result}`);
@@ -386,7 +476,7 @@ export class LeannyService {
             'MarkingTimeRt_Trap-table',
             'MoveDownRt_PoisonMist-table',
         ];
-        const hml = this.allHml[effectName[0]];
+        const hml = hmlData[effectName[0]];
         this.allAPs.forEach((APs) => {
             const result = this.calculateAbilityEffect(APs, hml[0], hml[1], hml[2]);
             console.log(`APs: ${APs} - ${result}`);
@@ -400,7 +490,7 @@ export class LeannyService {
             'ReduceJumpSwerveRate-table',
             'ReduceJumpSwerveRate-Blaster-table',
         ];
-        const hml = this.allHml[effectName[0]];
+        const hml = hmlData[effectName[0]];
         this.allAPs.forEach((APs) => {
             const result = this.calculateAbilityEffect(APs, hml[0], hml[1], hml[2]);
             console.log(`APs: ${APs} - ${result}`);
@@ -451,17 +541,13 @@ export class LeannyService {
 
 
     calculateAbilityEffect(
-        // numOfMains,
-        // numOfSubs,
         APs: number,
         high: number,
         mid: number,
         low: number,
         ninjaSquid = false
         ) {
-        // var APs = getAPs(numOfMains, numOfSubs);
-        // let APs = 6;
-        var percentage = this.getPercentage(APs);
+        var percentage = this.getPercentage(APs);        
         if (ninjaSquid) percentage *= 0.8;
         var slope = this.getSlope(high, mid, low);
         var lerpN = this.getLerpN(percentage / 100, slope);
@@ -473,7 +559,7 @@ export class LeannyService {
 
     // main, sub to AP points
     getAPs(numOfMains: number, numOfSubs: number) {
-        return 10 * numOfMains + 3 * numOfSubs;
+        return (10 * numOfMains) + (3 * numOfSubs);
     }
 
     // percent difference

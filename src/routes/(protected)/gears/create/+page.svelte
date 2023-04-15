@@ -1,8 +1,12 @@
 <script lang="ts">
     import type { PageServerData } from "./$types";
+    import { LeannyService as _LeannyService, type stat } from "$lib/Leanny/LeannyService";
     import SearchSelect from "$lib/comp/SearchSelect.svelte";
     import SkillBubble from "$lib/comp/SkillBubble.svelte";
     import SkillIcon from "$lib/comp/SkillIcon.svelte";
+    import EffectStat from "$lib/comp/EffectStat.svelte";
+
+    const LeannyService = new _LeannyService();
 
     export let data: PageServerData;
 
@@ -20,14 +24,19 @@
     export let mainSkills = data.mainSkills;
     export let nonMainSkills = data.nonMainSkills;
 
-    function bubbleClicked(event: CustomEvent) {
+    let stats: stat[] = [];
+
+    function bubbleClicked(event: CustomEvent) {    
         const clickedBubble = event.detail;
 
         skillBubbles[clickedBubble.number - 1].id = 'Unknown';
         skillBubbles[clickedBubble.number - 1].name = 'Unknown';
 
         // trigger reactive reload
-        skillBubbles = skillBubbles;        
+        skillBubbles = skillBubbles;
+
+        // update skill stats
+        updateStats();
     }
 
     function skillClicked(event: CustomEvent) {
@@ -49,6 +58,9 @@
                 // trigger reactive reload
                 skillBubbles = skillBubbles;
             }
+
+            // update skill stats
+            updateStats();
         }
     }
 
@@ -64,6 +76,10 @@
         });
 
         return nextBubbleIndex;
+    }
+
+    function updateStats() {
+        stats = LeannyService.calc(skillBubbles, selectedWeaponId);
     }
 </script>
 
@@ -204,6 +220,33 @@
                         >
                     </div>
                 </div>
+            </div>
+
+            <!-- stats -->
+            <div>
+                {#if stats.length > 0}
+                    {#each stats as stat}
+                        <!-- skill title element -->
+                        <div class="flex justify-start items-center gap-1 mt-4">
+                            <img
+                                src="/skills/{ stat.name }.png"
+                                alt="{ stat.name }"
+                                width="32px"
+                            >
+
+                            <h5>{ stat.name }</h5>
+                        </div>
+
+                        <!-- effect stats -->
+                        <div class="grid grid-cols-2 gap-2 items-end">
+                            {#each stat.effects as effect}
+                                <EffectStat 
+                                    effect={effect}
+                                />
+                            {/each}
+                        </div>
+                    {/each}
+                {/if}
             </div>
         </div>
     </div>
