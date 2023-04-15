@@ -124,12 +124,14 @@ export class LeannyService {
             }
         });
 
+        // reset APs mapping
+        this.skillAps = {};
+
         // get APs per inputted skill
         inputtedSkillObjs.forEach(skillObj => {
             const aps = this.getAPs(skillObj.numOfMain, skillObj.numOfSubs);
             
             this.skillAps[skillObj.name] = aps;
-            // this.skillAps.push({[skillObj.name]: aps});
         });
     }
 
