@@ -24,6 +24,7 @@
         on:click={ () => dispatch('bubbleClicked', skill) }
         on:keyup={ () => dispatch('bubbleClicked', skill) }
     >
+    <input type="hidden" name="skill-{ skill.number }" value="{ skill.id }">
 </div>
 
 <style>

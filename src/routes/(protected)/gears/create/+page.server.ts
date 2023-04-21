@@ -1,7 +1,9 @@
-import type { PageServerLoad } from './$types';
+import type { Actions, PageServerLoad } from './$types';
 import Gears from "$lib/Leanny/latest/gears.json";
 import Weapons from "$lib/Leanny/latest/weapons.json";
 import Translations from "$lib/Leanny/translations.json";
+import { PUBLIC_API_URL } from '$env/static/public';
+import { fail, redirect } from '@sveltejs/kit';
 
 export const load = (async () => {
     const gears = [
@@ -132,3 +134,45 @@ export const load = (async () => {
         nonMainSkills
     };
 }) satisfies PageServerLoad;
+
+export const actions: Actions = {
+    default: async ({request, cookies}) => {
+        const formData = await request.formData();
+        const title = formData.get('gear-title');
+        const desc = formData.get('gear-desc');
+        const skill1 = formData.get('skill-1');
+        const skill2 = formData.get('skill-2');
+        const skill3 = formData.get('skill-3');
+        const skill4 = formData.get('skill-4');
+        const gear = formData.get('select-gear');
+        const weapon = formData.get('select-weapon');
+
+        const header = {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                'title': title,
+                'desc': desc,
+                'skill1': skill1,
+                'skill2': skill2,
+                'skill3': skill3,
+                'skill4': skill4,
+                'gear': gear,
+                'weapon': weapon,
+            })
+        };
+        const res = await fetch(`${PUBLIC_API_URL}/gears/create`, header);
+
+        if (!res.ok) {
+            return fail(res.status, { error: true });
+        }
+
+        const text = await res.text();
+        const json = text ? JSON.parse(text) : {};
+        
+        // redirect the user
+        throw redirect(302, '/gears')
+    }
+};

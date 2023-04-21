@@ -90,7 +90,7 @@
     }
 </script>
 
-<form action="" method="post" class="w-full md:w-1/2 lg:w-4/5 px-4 md:px-0 md:mx-auto">
+<form method="post" class="w-full md:w-1/2 lg:w-4/5 px-4 md:px-0 md:mx-auto">
     <div class="mb-8">
         <h1 class="text-2xl font-bold text-center">Create Gear</h1>
     </div>
@@ -100,7 +100,7 @@
         <label for="gear-title" class="block">Gear name:</label>
         <input 
             type="text" 
-            name="gearTitle" 
+            name="gear-title" 
             id="gear-title" 
             class="w-full rounded focus:ring-primary-400 focus:border-primary-400"
         >
@@ -110,7 +110,7 @@
     <div class="mb-4 lg:w-2/5 mx-auto">
         <label for="gear-desc" class="block">Gear description:</label>
         <textarea 
-            name="gearDesc" 
+            name="gear-desc" 
             id="gear-desc" 
             cols="30" 
             rows="3" 
@@ -177,6 +177,13 @@
                     />
                 {/each}
             </div>
+
+            <!-- submit button -->
+            <input 
+                type="submit" 
+                class="p-2 bg-transparent text-primary-700 rounded-md border border-primary-700 mb-2 cursor-pointer transition-colors hover:bg-primary-500 hover:text-white hover:border-primary-500" 
+                value="Create"
+            >
         </div>
 
         <!-- weapon selection and stats -->
