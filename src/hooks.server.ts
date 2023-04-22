@@ -1,25 +1,39 @@
 import type { Handle } from "@sveltejs/kit";
 import { getSession } from "$lib/Session";
+import { db } from "$lib/server/database";
 
 export const handle: Handle = async ({ event, resolve }) => {
     const { cookies } = event;
-    const sid = cookies.get('sb_session');
+    const token = cookies.get('sb_session');
 
     console.log('=== hooks ===');
-    console.log(sid);
+    console.log(token);
 
-    if (sid) {
-        const session = getSession(sid);
-        console.log(session);
+    if (token) {
+        const user = await db.user.findUnique({
+            where: { token: token },
+            select: { username: true }
+        });
 
-        if (session) {
-            event.locals.username = session.username
+        if (user) {
+            event.locals.username = user.username;
         }
         else {
             cookies.delete('sb_session');
         }
     }
 
-    const res = await resolve(event);
-    return res;
+    // if (sid) {
+    //     const session = getSession(sid);
+    //     console.log(session);
+
+    //     if (session) {
+    //         event.locals.username = session.username
+    //     }
+    //     else {
+    //         cookies.delete('sb_session');
+    //     }
+    // }
+
+    return await resolve(event);
 }

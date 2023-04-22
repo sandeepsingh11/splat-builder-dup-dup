@@ -1,6 +1,7 @@
 import { fail, redirect } from '@sveltejs/kit'
 import type { Action, Actions, PageServerLoad } from "./$types"
 import { PUBLIC_API_URL } from "$env/static/public";
+import { db } from '$lib/server/database';
 
 
 export const load: PageServerLoad = async () => {
@@ -19,32 +20,42 @@ const register: Action = async ({ request }) => {
     !password ||
     !passwordConf ||
     typeof username !== 'string' ||
+    typeof email !== 'string' ||
     typeof password !== 'string' ||
     password !== passwordConf
   ) return fail(400, { invalid: true });
 
-  const header = {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      'username': username,
-      'email': email,
-      'password': password,
-      'password_confirmation': passwordConf
-    })
-  };
-  const res = await fetch(`${PUBLIC_API_URL}/register`, header);
+  // const header = {
+  //   method: 'POST',
+  //   headers: {
+  //     'Content-Type': 'application/json'
+  //   },
+  //   body: JSON.stringify({
+  //     'username': username,
+  //     'email': email,
+  //     'password': password,
+  //     'password_confirmation': passwordConf
+  //   })
+  // };
+  // const res = await fetch(`${PUBLIC_API_URL}/register`, header);
 
-  if (res.ok || res.status === 422) {
-    const text = await res.text();
-    const output = text ? JSON.parse(text) : {};
-    console.log(output);
-  }
-  else {
-    throw fail(res.status, { error: true });
-  }
+  // if (res.ok || res.status === 422) {
+  //   const text = await res.text();
+  //   const output = text ? JSON.parse(text) : {};
+  //   console.log(output);
+  // }
+  // else {
+  //   throw fail(res.status, { error: true });
+  // }
+
+  await db.user.create({
+    data: {
+      username: username,
+      email: email,
+      password: password,
+      token: crypto.randomUUID()
+    }
+  });
 
   
   throw redirect(303, '/login')
