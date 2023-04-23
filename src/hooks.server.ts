@@ -12,11 +12,12 @@ export const handle: Handle = async ({ event, resolve }) => {
     if (token) {
         const user = await db.user.findUnique({
             where: { token: token },
-            select: { username: true }
+            select: { username: true, id: true }
         });
 
         if (user) {
             event.locals.username = user.username;
+            event.locals.id = user.id;
         }
         else {
             cookies.delete('sb_session');

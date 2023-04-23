@@ -4,6 +4,7 @@ import Weapons from "$lib/Leanny/latest/weapons.json";
 import Translations from "$lib/Leanny/translations.json";
 import { PUBLIC_API_URL } from '$env/static/public';
 import { fail, redirect } from '@sveltejs/kit';
+import { db } from '$lib/server/database';
 
 export const load = (async () => {
     const gears = [
@@ -136,10 +137,10 @@ export const load = (async () => {
 }) satisfies PageServerLoad;
 
 export const actions: Actions = {
-    default: async ({request, cookies}) => {
+    default: async ({request, locals}) => {
         const formData = await request.formData();
-        const title = formData.get('gear-title');
-        const desc = formData.get('gear-desc');
+        let title = formData.get('gear-title');
+        let desc = formData.get('gear-desc');
         const skill1 = formData.get('skill-1');
         const skill2 = formData.get('skill-2');
         const skill3 = formData.get('skill-3');
@@ -147,30 +148,67 @@ export const actions: Actions = {
         const gear = formData.get('select-gear');
         const weapon = formData.get('select-weapon');
 
-        const header = {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                'title': title,
-                'desc': desc,
-                'skill1': skill1,
-                'skill2': skill2,
-                'skill3': skill3,
-                'skill4': skill4,
-                'gear': gear,
-                'weapon': weapon,
-            })
-        };
-        const res = await fetch(`${PUBLIC_API_URL}/gears/create`, header);
+        // const header = {
+        //     method: 'POST',
+        //     headers: {
+        //         'Content-Type': 'application/json'
+        //     },
+        //     body: JSON.stringify({
+        //         'title': title,
+        //         'desc': desc,
+        //         'skill1': skill1,
+        //         'skill2': skill2,
+        //         'skill3': skill3,
+        //         'skill4': skill4,
+        //         'gear': gear,
+        //         'weapon': weapon,
+        //     })
+        // };
+        // const res = await fetch(`${PUBLIC_API_URL}/gears/create`, header);
 
-        if (!res.ok) {
-            return fail(res.status, { error: true });
+        // if (!res.ok) {
+        //     return fail(res.status, { error: true });
+        // }
+
+        // const text = await res.text();
+        // const json = text ? JSON.parse(text) : {};
+
+        title = (title) ? title : '';
+        desc = (desc) ? desc : '';
+
+        if (
+            !skill1 ||
+            !skill2 ||
+            !skill3 ||
+            !skill4 ||
+            !gear ||
+            !weapon ||
+            typeof skill1 !== 'string' ||
+            typeof skill2 !== 'string' ||
+            typeof skill3 !== 'string' ||
+            typeof skill4 !== 'string' ||
+            typeof gear !== 'string' ||
+            typeof weapon !== 'string' ||
+            typeof title !== 'string' ||
+            typeof desc !== 'string'
+        )
+        {
+            return fail(400, { invalid: true });
         }
 
-        const text = await res.text();
-        const json = text ? JSON.parse(text) : {};
+        await db.gear.create({
+            data: {
+                userId: locals.id,
+                title,
+                description: desc,
+                skill1,
+                skill2,
+                skill3,
+                skill4,
+                gear,
+                weapon
+            }
+        });
         
         // redirect the user
         throw redirect(302, '/gears')
