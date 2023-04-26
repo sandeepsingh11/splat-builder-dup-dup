@@ -9,12 +9,12 @@ export const load: LayoutServerLoad = async ({ locals }) => {
     ];
     const authRoutes = [
         {name: '+Gear', url: '/gears/create'},
-        {name: '+Gearset', url: '/gearsets/create'},
+        {name: '+Loadout', url: '/loadouts/build'},
     ];
     const dropdownRoutes = [
         {name: 'Dashboard', url: '/dashboard'},
         {name: 'Gears', url: '/gears'},
-        {name: 'Gearsets', url: '/gearsets'},
+        {name: 'Loadouts', url: '/loadouts'},
         {name: 'Logout', url: '/logout'},
     ];
     

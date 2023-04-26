@@ -13,7 +13,7 @@
     }[];
     export let selectedItemId: string;
     export let selectedItemName: string;
-    export let itemType: 'gear' | 'weapon';
+    export let itemType: string; // 'gear' | 'weapon' | 'head' | 'clothes' | 'shoes'
     
     export let selectedSubId: string = '';
     export let selectedSubName: string = '';
