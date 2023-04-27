@@ -1,4 +1,5 @@
 import type { PageServerLoad } from "./$types";
+import _weapons from "$lib/Leanny/latest/weapons.json";
 import _translations from "$lib/Leanny/translations.json";
 import { db } from "$lib/server/database";
 
@@ -17,9 +18,25 @@ type skill = {
     localizedName: string
 }
 
+type skillBubble = {
+    number: number,
+    id: string,
+    name: string,
+    isMain: boolean
+}
+
 type searchSelectObj = {
     id: string,
     name: string
+}
+
+type weapon = {
+    id: string, 
+    name: string,
+    subId: string,
+    subName: string, 
+    specialId: string,
+    specialName: string, 
 }
 
 export const load: PageServerLoad = async ({ locals }) => {
@@ -105,11 +122,94 @@ export const load: PageServerLoad = async ({ locals }) => {
         ? userGears.find(shoesGear => shoesGear.id === userGearsSorted[2][0].id)
         : null;
 
+    let weapons: weapon[] = [];
+    const localizedWeapons: {[key: string]: string} = localization.WeaponName_Main;
+    const localizedSubs: {[key: string]: string} = localization.WeaponName_Sub;
+    const localizedSpecials: {[key: string]: string} = localization.WeaponName_Special;
+    const weaponObjs = Object.entries(_weapons);
+    weaponObjs.forEach(weaponObj => {
+        weapons.push({
+            id: weaponObj[0],
+            name: localizedWeapons[weaponObj[0]],
+            subId: weaponObj[1].Sub,
+            subName: localizedSubs[weaponObj[1].Sub],
+            specialId: weaponObj[1].Special,
+            specialName: localizedSpecials[weaponObj[1].Special],
+        })
+    });
+
+    const selectedWeapon: weapon = weapons[0];
+
+    let skillBubbles: skillBubble[] = [];
+    for (let i = 0; i < 12; i++) {
+        const r = i % 4;
+        const skillIndex = (r === 0) ? 'skill1' : (r === 1) ? 'skill2' : (r === 3) ? 'skill3' : 'skill4';
+
+        if (i < 4) {
+            if (selectedHeadGear) {
+                skillBubbles[i] = {
+                    number: i + 1,
+                    id: selectedHeadGear[skillIndex].name,
+                    name: selectedHeadGear[skillIndex].localizedName,
+                    isMain: (r === 0) ? true : false
+                }
+            }
+            else {
+                skillBubbles[i] = {
+                    number: i + 1,
+                    id: 'Unknown',
+                    name: 'Unknown',
+                    isMain: (r === 0) ? true : false
+                }
+            }
+        }
+        else if (i >= 4 && i < 8) {
+            if (selectedClothesGear) {
+                skillBubbles[i] = {
+                    number: i + 1,
+                    id: selectedClothesGear[skillIndex].name,
+                    name: selectedClothesGear[skillIndex].localizedName,
+                    isMain: (r === 0) ? true : false
+                }
+            }
+            else {
+                skillBubbles[i] = {
+                    number: i + 1,
+                    id: 'Unknown',
+                    name: 'Unknown',
+                    isMain: (r === 0) ? true : false
+                }
+            }
+        }
+        else {
+            if (selectedShoesGear) {
+                skillBubbles[i] = {
+                    number: i + 1,
+                    id: selectedShoesGear[skillIndex].name,
+                    name: selectedShoesGear[skillIndex].localizedName,
+                    isMain: (r === 0) ? true : false
+                }
+            }
+            else {
+                skillBubbles[i] = {
+                    number: i + 1,
+                    id: 'Unknown',
+                    name: 'Unknown',
+                    isMain: (r === 0) ? true : false
+                }
+            }
+        }
+    }
+    
+
     return {
         userGears,
         userGearsSorted,
         selectedHeadGear,
         selectedClothesGear,
         selectedShoesGear,
+        weapons,
+        selectedWeapon,
+        skillBubbles
     };
 };

@@ -1,9 +1,14 @@
 <script lang="ts">
     import type { PageServerData } from "./$types";
+    import EffectStat from "$lib/comp/EffectStat.svelte";
     import SearchSelect from "$lib/comp/SearchSelect.svelte";
     import SkillBubble from "$lib/comp/SkillBubble.svelte";
+    import { LeannyService as _LeannyService, type stat } from "$lib/Leanny/LeannyService";
 
     export let data: PageServerData;
+
+    const LeannyService = new _LeannyService();
+    let skillBubbles = data.skillBubbles;
 
     let selectedHeadGear = data.selectedHeadGear;
     let selectedClothesGear = data.selectedClothesGear;
@@ -15,18 +20,77 @@
     ];
     const gearTypes = ['head', 'clothes', 'shoes'];
 
+    let selectedWeapon = data.selectedWeapon;
+
+    let stats: stat[] = LeannyService.calc(skillBubbles, selectedWeapon.id);
+
     function searchSelectUpdate(event: CustomEvent) {
         const searchSelectEvent = event.detail;
-        const selectedGear = data.userGears.find(userGear => userGear.id === searchSelectEvent.selectedId);
+        let selectedGear;
+
+        if (
+            searchSelectEvent.type === 'head' ||
+            searchSelectEvent.type === 'clothes' ||
+            searchSelectEvent.type === 'shoes'
+        ) {
+            selectedGear = data.userGears.find(userGear => userGear.id === searchSelectEvent.selectedId);
+        }
 
         if (searchSelectEvent.type === 'head') {
             selectedHeadGear = selectedGear;
+
+            if (selectedHeadGear) {
+                for (let i = 0; i < 4; i++) {
+                    const r = i % 4;
+                    const skillIndex = (r === 0) ? 'skill1' : (r === 1) ? 'skill2' : (r === 3) ? 'skill3' : 'skill4';
+
+                    skillBubbles[i] = {
+                        number: i + 1,
+                        id: selectedHeadGear[skillIndex].name,
+                        name: selectedHeadGear[skillIndex].localizedName,
+                        isMain: (r === 0) ? true : false
+                    }
+                }
+            }
         }
         else if (searchSelectEvent.type === 'clothes') {
             selectedClothesGear = selectedGear;
+
+            if (selectedClothesGear) {
+                for (let i = 4; i < 8; i++) {
+                    const r = i % 4;
+                    const skillIndex = (r === 0) ? 'skill1' : (r === 1) ? 'skill2' : (r === 3) ? 'skill3' : 'skill4';
+                    
+                    skillBubbles[i] = {
+                        number: i + 1,
+                        id: selectedClothesGear[skillIndex].name,
+                        name: selectedClothesGear[skillIndex].localizedName,
+                        isMain: (r === 0) ? true : false
+                    }
+                }
+            }
         }
         else if (searchSelectEvent.type === 'shoes') {
             selectedShoesGear = selectedGear;
+
+            if (selectedShoesGear) {
+                for (let i = 8; i < 12; i++) {
+                    const r = i % 4;
+                    const skillIndex = (r === 0) ? 'skill1' : (r === 1) ? 'skill2' : (r === 3) ? 'skill3' : 'skill4';
+                    
+                    skillBubbles[i] = {
+                        number: i + 1,
+                        id: selectedShoesGear[skillIndex].name,
+                        name: selectedShoesGear[skillIndex].localizedName,
+                        isMain: (r === 0) ? true : false
+                    }
+                }
+            }
+        }
+        else if (searchSelectEvent.type === 'weapon') {
+            const tmpSelectedWeapon = data.weapons.find(weapon => weapon.id === searchSelectEvent.selectedId);
+
+            if (tmpSelectedWeapon) selectedWeapon = tmpSelectedWeapon;
         }
 
         // re-assign to trigger reactivity
@@ -35,6 +99,9 @@
             selectedClothesGear,
             selectedShoesGear
         ];
+
+        // update stats
+        stats = LeannyService.calc(skillBubbles, selectedWeapon.id);
     }
 </script>
 <!-- https://github.com/sandeepsingh11/splat-build/blob/master/resources/views/users/gearsets/create.blade.php -->
@@ -112,8 +179,9 @@
         </div>
     </div>
 
-    <!-- gears, skills, and stats -->
+    <!-- user gears and weapons & stats -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+        <!-- user gears -->
         <div>
             <!-- markup for each gear type -->
             {#each gearTypes as gearType, i}
@@ -178,5 +246,92 @@
                     {/if}
                 </div>
             {/each}
+
+            <!-- submit -->
+            <input 
+                type="submit" 
+                value="Create" 
+                class="p-2 bg-transparent text-primary-700 rounded-md border border-primary-700 mb-2 cursor-pointer transition-colors hover:bg-primary-500 hover:text-white hover:border-primary-500"
+            >
+        </div>
+
+        <!-- weapons and stats -->
+        <div>
+            <div class="mb-6">
+                <!-- weapons -->
+                <div>
+                    <h4>Weapon stats:</h4>
+                    <SearchSelect 
+                        itemList={data.weapons}
+                        itemType="weapon"
+                        selectedItemId={selectedWeapon.id}
+                        selectedItemName={selectedWeapon.name}
+                        on:searchSelectChanged={searchSelectUpdate}
+                    />
+
+                    <!-- selected weapon, sub, special img -->
+                    <div 
+                        id="weapon-container" 
+                        class="grid grid-cols-1 grid-cols-2 gap-x-4"
+                    >
+                        <img 
+                            id="weapon-img"
+                            class="justify-self-center" 
+                            src="/weapon_flat/Path_Wst_{ selectedWeapon.id }.png" 
+                            alt="{ selectedWeapon.name }"
+                            width="128px" 
+                            height="128px"
+                        >
+                        <div class="grid grid-cols-2 items-center gap-x-2">
+                            <img 
+                                id="sub-img" 
+                                src="/subspe/Wsb_{ selectedWeapon.subId }00.png" 
+                                alt="{ selectedWeapon.subName }" 
+                                class="justify-self-center"
+                                width="64px" 
+                                height="64px"
+                            >
+                            <img 
+                                id="special-img" 
+                                src="/subspe/Wsp_{ selectedWeapon.specialId }00.png" 
+                                alt="{ selectedWeapon.specialName }" 
+                                class="justify-self-center"
+                                width="64px" 
+                                height="64px"
+                            >
+                        </div>
+                    </div>
+                </div>
+
+                <!-- stats -->
+                <div>
+                    <h4>Loadout stats:</h4>
+
+                    {#if stats.length > 0}
+                        {#each stats as stat}
+                            <!-- skill title element -->
+                            <div class="flex justify-start items-center gap-1 mt-4">
+                                <img
+                                    src="/skills/{ stat.name }.png"
+                                    alt="{ stat.name }"
+                                    width="32px"
+                                >
+
+                                <h5>{ stat.name }</h5>
+                            </div>
+
+                            <!-- effect stats -->
+                            <div class="grid grid-cols-2 gap-2 items-end">
+                                {#each stat.effects as effect}
+                                    <EffectStat 
+                                        effect={effect}
+                                    />
+                                {/each}
+                            </div>
+                        {/each}
+                    {/if}
+                </div>
+            </div>
+        </div>
     </div>
 </form>
