@@ -113,68 +113,68 @@
     class="w-full md:w-3/4 lg:w-2/3 px-4 md:px-0 md:mx-auto"
 >
     <div class="mb-8">
-        <h2 class="text-2xl font-bold text-center">Create Gearset</h2>
+        <h2 class="text-2xl font-bold text-center">Create Loadout</h2>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-x-4 mb-4">
-        <!-- gearset title -->
+        <!-- loadout title -->
         <div class="mb-4">
-            <label for="gearset-title" class="block">Gearset title:</label>
-            <input type="text" name="gearset-title" id="gearset-title"  class="w-full rounded focus:ring-primary-400 focus:border-primary-400">
+            <label for="loadout-title" class="block">Loadout title:</label>
+            <input type="text" name="loadout-title" id="loadout-title"  class="w-full rounded focus:ring-primary-400 focus:border-primary-400">
         </div>
 
-        <!-- gearset desc -->
+        <!-- loadout desc -->
         <div class="row-start-2 mb-4 md:mb-0">
-            <label for="gearset-desc" class="block">Gearset description:</label>
+            <label for="loadout-desc" class="block">Loadout description:</label>
             <textarea 
-                name="gearset-desc" 
-                id="gearset-desc" 
+                name="loadout-desc" 
+                id="loadout-desc" 
                 class="w-full rounded focus:ring-primary-400 focus:border-primary-400"
             ></textarea>
         </div>
 
-        <!-- gearset mode -->
+        <!-- loadout mode -->
         <div class="row-span-2">
             <label for="mode" class="block">Game mode:</label>
 
             <div>
                 <input 
                     type="checkbox" 
-                    name="gearset-mode-rm" 
+                    name="loadout-mode-rm" 
                     value="1" 
                     class="rounded-sm text-secondary-700 focus:ring-primary-400"
                 >
-                <label for="gearset-mode-rm">Rainmaker</label>
+                <label for="loadout-mode-rm">Rainmaker</label>
             </div>
 
             <div>
                 <input 
                     type="checkbox" 
-                    name="gearset-mode-cb" 
+                    name="loadout-mode-cb" 
                     value="1" 
                     class="rounded-sm text-secondary-700 focus:ring-primary-400"
                 >
-                <label for="gearset-mode-cb">Clam Blitz</label>
+                <label for="loadout-mode-cb">Clam Blitz</label>
             </div>
 
             <div>
                 <input 
                     type="checkbox" 
-                    name="gearset-mode-sz" 
+                    name="loadout-mode-sz" 
                     value="1" 
                     class="rounded-sm text-secondary-700 focus:ring-primary-400"
                 >
-                <label for="gearset-mode-sz">Splat Zones</label>
+                <label for="loadout-mode-sz">Splat Zones</label>
             </div>
 
             <div>
                 <input 
                     type="checkbox" 
-                    name="gearset-mode-tc" 
+                    name="loadout-mode-tc" 
                     value="1" 
                     class="rounded-sm text-secondary-700 focus:ring-primary-400"
                 >
-                <label for="gearset-mode-tc">Tower Control</label>
+                <label for="loadout-mode-tc">Tower Control</label>
             </div>
         </div>
     </div>

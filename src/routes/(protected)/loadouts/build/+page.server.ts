@@ -1,7 +1,8 @@
-import type { PageServerLoad } from "./$types";
+import type { Actions, PageServerLoad } from "./$types";
 import _weapons from "$lib/Leanny/latest/weapons.json";
 import _translations from "$lib/Leanny/translations.json";
 import { db } from "$lib/server/database";
+import { fail, redirect } from "@sveltejs/kit";
 
 type userGear = {
     id: string,
@@ -212,4 +213,55 @@ export const load: PageServerLoad = async ({ locals }) => {
         selectedWeapon,
         skillBubbles
     };
+};
+
+export const actions: Actions = {
+    default: async ({request, locals}) => {
+        const formData = await request.formData();
+        const title = formData.get('loadout-title');
+        const desc = formData.get('loadout-desc');
+        let rm = formData.get('loadout-mode-rm') || false;
+        let cb = formData.get('loadout-mode-cb') || false;
+        let sz = formData.get('loadout-mode-sz') || false;
+        let tc = formData.get('loadout-mode-tc') || false;
+        let hGear = formData.get('select-head');
+        let cGear = formData.get('select-clothes');
+        let sGear = formData.get('select-shoes');
+        const weapon = formData.get('select-weapon');
+        
+        // convert string to boolean
+        rm = !!rm;
+        cb = !!cb;
+        sz = !!sz;
+        tc = !!tc;
+        
+        if (
+            !weapon ||
+            typeof weapon !== 'string' ||
+            typeof title !== 'string' ||
+            typeof desc !== 'string'
+        )
+        {
+            return fail(400, { invalid: true });
+        }
+
+        await db.loadout.create({
+            data: {
+                userId: locals.id,
+                title,
+                description: desc,
+                rm,
+                cb,
+                sz,
+                tc,
+                hUserGear: (hGear) ? parseInt(hGear) : null,
+                cUserGear: (cGear) ? parseInt(cGear) : null,
+                sUserGear: (sGear) ? parseInt(sGear) : null,
+                weapon
+            }
+        });
+        
+        // redirect the user
+        throw redirect(302, '/loadouts')
+    }
 };

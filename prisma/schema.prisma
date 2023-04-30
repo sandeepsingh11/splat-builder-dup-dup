@@ -34,3 +34,20 @@ model Gear {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 }
+
+model Loadout {
+  id          Int       @id @default(autoincrement())
+  userId      Int
+  title       String?
+  description String?
+  rm          Boolean   @default(false)
+  cb          Boolean   @default(false)
+  sz          Boolean   @default(false)
+  tc          Boolean   @default(false)
+  hUserGear   Int?
+  cUserGear   Int?
+  sUserGear   Int?
+  weapon      String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
