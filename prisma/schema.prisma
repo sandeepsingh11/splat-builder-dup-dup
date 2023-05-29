@@ -33,6 +33,7 @@ model Gear {
   weapon      String
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+  loadouts    GearsOnLoadouts[]
 }
 
 model Loadout {
@@ -50,4 +51,14 @@ model Loadout {
   weapon      String
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+  gears       GearsOnLoadouts[]
+}
+
+model GearsOnLoadouts {
+  id          Int       @id @default(autoincrement())
+  loadout     Loadout   @relation(fields: [loadoutId], references: [id])
+  loadoutId   Int
+  gear        Gear      @relation(fields: [gearId], references: [id])
+  gearId      Int
+  gearType    String
 }
