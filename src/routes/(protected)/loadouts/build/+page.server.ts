@@ -245,7 +245,7 @@ export const actions: Actions = {
             return fail(400, { invalid: true });
         }
 
-        await db.loadout.create({
+        const loadout = await db.loadout.create({
             data: {
                 userId: locals.id,
                 title,
@@ -254,12 +254,40 @@ export const actions: Actions = {
                 cb,
                 sz,
                 tc,
-                hUserGear: (hGear) ? parseInt(hGear) : null,
-                cUserGear: (cGear) ? parseInt(cGear) : null,
-                sUserGear: (sGear) ? parseInt(sGear) : null,
                 weapon
             }
         });
+
+        // associate gears to loadout in pivot table
+        if (hGear) {
+            await db.gearsOnLoadouts.create({
+                data: {
+                    loadoutId: loadout.id,
+                    gearId: parseInt(hGear as string),
+                    gearType: 'H'
+                }
+            })
+        }
+
+        if (cGear) {
+            await db.gearsOnLoadouts.create({
+                data: {
+                    loadoutId: loadout.id,
+                    gearId: parseInt(cGear as string),
+                    gearType: 'C'
+                }
+            })
+        }
+
+        if (sGear) {
+            await db.gearsOnLoadouts.create({
+                data: {
+                    loadoutId: loadout.id,
+                    gearId: parseInt(sGear as string),
+                    gearType: 'S'
+                }
+            })
+        }
         
         // redirect the user
         throw redirect(302, '/loadouts')

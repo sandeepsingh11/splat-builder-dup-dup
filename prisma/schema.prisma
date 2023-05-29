@@ -45,9 +45,6 @@ model Loadout {
   cb          Boolean   @default(false)
   sz          Boolean   @default(false)
   tc          Boolean   @default(false)
-  hUserGear   Int?
-  cUserGear   Int?
-  sUserGear   Int?
   weapon      String
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
