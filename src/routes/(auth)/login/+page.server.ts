@@ -44,13 +44,18 @@ export const actions: Actions = {
         // // set cookie
         // setCookie(json.data.user.username, cookies);
 
-        const user = await db.user.findUnique({where: { username }});
+        let user = await db.user.findUnique({where: { username }});
 
         if (!user) return fail(400, { invalid: true });
         
         const userPw = bcrypt.compare(password, user.password);
 
         if (!userPw) return fail(400, { invalid: true });
+
+        user = await db.user.update({
+            where: { username: user.username },
+            data: { token: crypto.randomUUID() }
+        });
 
         cookies.set('sb_session', user.token, {
             // send cookie for every page

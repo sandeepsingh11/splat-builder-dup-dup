@@ -7,7 +7,6 @@ export const load: PageServerLoad = async ({cookies}) => {
 
     if (sid) {
         cookies.delete('sb_session');
-        deleteSession(sid);
     }
 
     throw redirect(303, '/login');
