@@ -1,7 +1,5 @@
 import bcrypt from 'bcrypt'
-import { PUBLIC_API_URL } from '$env/static/public'
 import { db } from '$lib/server/database'
-import { setCookie } from '$lib/Session'
 import { fail, redirect } from '@sveltejs/kit'
 import type { Actions } from './$types'
 
@@ -21,29 +19,7 @@ export const actions: Actions = {
             return fail(400, { invalid: true })
         }
 
-
-        // const header = {
-        //     method: 'POST',
-        //     headers: {
-        //         'Content-Type': 'application/json'
-        //     },
-        //     body: JSON.stringify({
-        //         'username': username,
-        //         'password': password,
-        //     })
-        // };
-        // const res = await fetch(`${PUBLIC_API_URL}/login`, header);
-
-        // if (!res.ok) {
-        //     return fail(res.status, { credentials: true });
-        // }
-
-        // const text = await res.text();
-        // const json = text ? JSON.parse(text) : {};
-
-        // // set cookie
-        // setCookie(json.data.user.username, cookies);
-
+        // verify credentials
         let user = await db.user.findUnique({where: { username }});
 
         if (!user) return fail(400, { invalid: true });
@@ -52,11 +28,13 @@ export const actions: Actions = {
 
         if (!userPw) return fail(400, { invalid: true });
 
+        // update token
         user = await db.user.update({
             where: { username: user.username },
             data: { token: crypto.randomUUID() }
         });
 
+        // set cookie
         cookies.set('sb_session', user.token, {
             // send cookie for every page
             path: '/',

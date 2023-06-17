@@ -104,8 +104,6 @@
         stats = LeannyService.calc(skillBubbles, selectedWeapon.id);
     }
 </script>
-<!-- https://github.com/sandeepsingh11/splat-build/blob/master/resources/views/users/gearsets/create.blade.php -->
-<!-- https://github.com/sandeepsingh11/splat-build/blob/master/resources/views/livewire/base-gear-select.blade.php -->
 
 <form 
     action="" 

@@ -8,7 +8,7 @@ export const load: LayoutServerLoad = async ({ locals }) => {
         {name: 'Register', url: '/register'},
     ];
     const authRoutes = [
-        {name: '+Gear', url: '/gears/create'},
+        {name: '+Gear', url: '/gears/build'},
         {name: '+Loadout', url: '/loadouts/build'},
     ];
     const dropdownRoutes = [

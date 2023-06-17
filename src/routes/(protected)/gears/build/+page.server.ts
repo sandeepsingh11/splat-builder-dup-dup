@@ -2,20 +2,11 @@ import type { Actions, PageServerLoad } from './$types';
 import Gears from "$lib/Leanny/latest/gears.json";
 import Weapons from "$lib/Leanny/latest/weapons.json";
 import Translations from "$lib/Leanny/translations.json";
-import { PUBLIC_API_URL } from '$env/static/public';
 import { fail, redirect } from '@sveltejs/kit';
 import { db } from '$lib/server/database';
 
 export const load = (async () => {
-    const gears = [
-        ...Gears.Head,
-        ...Gears.Clothes,
-        ...Gears.Shoes,
-    ];
-
     const translations = Translations['USen'];
-
-
 
     // get gear translations
     const gearTranslations: { [key: string]: string } = {
@@ -147,31 +138,6 @@ export const actions: Actions = {
         const skill4 = formData.get('skill-4');
         const gear = formData.get('select-gear');
         const weapon = formData.get('select-weapon');
-
-        // const header = {
-        //     method: 'POST',
-        //     headers: {
-        //         'Content-Type': 'application/json'
-        //     },
-        //     body: JSON.stringify({
-        //         'title': title,
-        //         'desc': desc,
-        //         'skill1': skill1,
-        //         'skill2': skill2,
-        //         'skill3': skill3,
-        //         'skill4': skill4,
-        //         'gear': gear,
-        //         'weapon': weapon,
-        //     })
-        // };
-        // const res = await fetch(`${PUBLIC_API_URL}/gears/create`, header);
-
-        // if (!res.ok) {
-        //     return fail(res.status, { error: true });
-        // }
-
-        // const text = await res.text();
-        // const json = text ? JSON.parse(text) : {};
 
         title = (title) ? title : '';
         desc = (desc) ? desc : '';

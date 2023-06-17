@@ -4,8 +4,6 @@
     export let data: PageServerData;
 </script>
 
-<!-- https://github.com/sandeepsingh11/splat-build/blob/master/resources/views/components/gear/base.blade.php -->
-
 <h2 class="text-2xl font-bold text-center mb-8">{ data.locals.username }'s gears</h2>
 
 {#if data.gears.length > 0}
@@ -87,5 +85,5 @@
         {/each}
     </div>
 {:else}
-    <p class="text-xl text-center italic font-semibold mt-8">You do not have any gear yet...<a href="/gears/create">Go create one!</a></p>
+    <p class="text-xl text-center italic font-semibold mt-8">You do not have any gear yet...<a href="/gears/build">Go create one!</a></p>
 {/if}

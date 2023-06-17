@@ -140,8 +140,7 @@
                         class="mx-auto"
                     >
                 </div>
-                
-                <!-- https://github.com/sandeepsingh11/splat-build/blob/add-angular/resources/frontend/angular/src/app/pages/gear/gear-form/gear-form.component.html -->
+                                
             </div>
 
             <!-- skills input -->
